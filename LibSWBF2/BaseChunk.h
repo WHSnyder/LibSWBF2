@@ -19,6 +19,7 @@ namespace LibSWBF2::Chunks
 	using LibSWBF2::Types::List;
 	using LibSWBF2::Types::String;
 
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP BaseChunk
 	{
 		bool WriteToFile(const string& Path);
@@ -46,4 +47,5 @@ namespace LibSWBF2::Chunks
 		ChunkSize m_Size = 0;
 		size_t m_ChunkDataPosition = 0;	// in File (for reading process)
 	};
+#pragma pack(pop)
 }

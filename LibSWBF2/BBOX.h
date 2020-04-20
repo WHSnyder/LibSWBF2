@@ -6,6 +6,7 @@ namespace LibSWBF2::Chunks::Mesh
 	struct GEOM;
 	struct SINF;
 
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP BBOX : public BaseChunk
 	{
 		BBOX() = default;
@@ -24,4 +25,5 @@ namespace LibSWBF2::Chunks::Mesh
 		void WriteToStream(FileWriter& stream) override;
 		void ReadFromStream(FileReader& stream) override;
 	};
+#pragma pack(pop)
 }

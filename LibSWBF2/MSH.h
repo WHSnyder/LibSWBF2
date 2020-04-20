@@ -6,6 +6,7 @@
 
 namespace LibSWBF2::Chunks::Mesh
 {
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP MSH : public BaseChunk
 	{
 		static MSH* Create();
@@ -23,4 +24,5 @@ namespace LibSWBF2::Chunks::Mesh
 		void WriteToStream(FileWriter& stream) override;
 		void ReadFromStream(FileReader& stream) override;
 	};
+#pragma pack(pop)
 }

@@ -5,14 +5,14 @@ namespace LibSWBF2.Types
 {
     public unsafe class Vector2
     {
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         internal struct NativeStruct
         {
-            public float X;
-            public float Y;
-
             // For more details see BacseChunk.NativeStruct.__vfptr
             private IntPtr __vfptr;
+
+            public float X;
+            public float Y;
         }
 
         private NativeStruct* Ptr = null;

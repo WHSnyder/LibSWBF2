@@ -8,6 +8,7 @@ namespace LibSWBF2::Chunks::Mesh
 {
 	struct MATL;
 
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP MATD : public BaseChunk
 	{
 		MATD() = default;
@@ -28,4 +29,5 @@ namespace LibSWBF2::Chunks::Mesh
 		void WriteToStream(FileWriter& stream) override;
 		void ReadFromStream(FileReader& stream) override;
 	};
+#pragma pack(pop)
 }

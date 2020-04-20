@@ -4,6 +4,7 @@
 
 namespace LibSWBF2::Types
 {
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP Vector2
 	{
 		static const ChunkSize SIZE = sizeof(float_t) * 2;
@@ -18,4 +19,5 @@ namespace LibSWBF2::Types
 		float_t m_X = 0.0f;
 		float_t m_Y = 0.0f;
 	};
+#pragma pack(pop)
 }

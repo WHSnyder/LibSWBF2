@@ -5,14 +5,14 @@ namespace LibSWBF2.Types
 {
     public unsafe class String
     {
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         internal struct NativeStruct
         {
+            // For more details see BacseChunk.NativeStruct.__vfptr
+            //private IntPtr __vfptr;   // NOT ADDED HERE BY C++ ?
+
             public IntPtr buffer;
             public ulong length;
-
-            // For more details see BacseChunk.NativeStruct.__vfptr
-            private IntPtr __vfptr;
         }
 
         private NativeStruct* Ptr = null;

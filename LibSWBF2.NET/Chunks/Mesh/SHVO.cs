@@ -4,7 +4,7 @@ namespace LibSWBF2.Chunks.Mesh
 {
     public unsafe class SHVO
     {
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         internal struct NativeStruct
         {
             private BaseChunk.NativeStruct BaseChunk;

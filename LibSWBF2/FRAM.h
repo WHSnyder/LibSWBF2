@@ -5,6 +5,7 @@ namespace LibSWBF2::Chunks::Mesh
 {
 	struct SINF;
 
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP FRAM : public BaseChunk
 	{
 		FRAM() = default;
@@ -21,4 +22,5 @@ namespace LibSWBF2::Chunks::Mesh
 		void WriteToStream(FileWriter& stream) override;
 		void ReadFromStream(FileReader& stream) override;
 	};
+#pragma pack(pop)
 }

@@ -4,6 +4,7 @@
 
 namespace LibSWBF2::Types
 {
+#pragma pack(push, 1)
 	struct LIBSWBF2_EXP Color
 	{
 		static const ChunkSize SIZE = sizeof(float_t) * 4;
@@ -21,4 +22,5 @@ namespace LibSWBF2::Types
 		float_t m_Blue = 0.0f;
 		float_t m_Alpha = 0.0f;
 	};
+#pragma pack(pop)
 }
