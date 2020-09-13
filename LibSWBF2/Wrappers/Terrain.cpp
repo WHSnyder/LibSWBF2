@@ -2,16 +2,11 @@
 #include "Terrain.h"
 #include "InternalHelpers.h"
 
-#include <iostream>
-#define COUT(x) std::cout << x << std::endl
-
 namespace LibSWBF2::Wrappers
 {
 	using Chunks::LVL::terrain::PTCH;
 	using Chunks::LVL::terrain::VBUF;
 	using Chunks::LVL::terrain::IBUF;
-
-
 
 	bool Terrain::FromChunk(Level* mainContainer, tern* terrainChunk, Terrain& out)
 	{
@@ -71,7 +66,7 @@ namespace LibSWBF2::Wrappers
 			List<Types::TerrainBufferEntry>& terrainBuffer = vertexBuffer->m_TerrainBuffer;
 			if (vertexBuffer->m_ElementCount != terrainBuffer.Size())
 			{
-				LOG_ERROR("Specified element count '{}' does not match up with actual buffer size '{}'! Patch index: {}", vertexBuffer->m_ElementCount, terrainBuffer.Size(), i);
+				LOG_WARN("Specified element count '{}' does not match up with actual buffer size '{}'! Patch index: {}", vertexBuffer->m_ElementCount, terrainBuffer.Size(), i);
 				continue;
 			}
 
@@ -123,6 +118,101 @@ namespace LibSWBF2::Wrappers
 		return true;
 	}
 
+
+	void Terrain::GetBlendMap(uint32_t& dim, uint32_t& elementSize, uint8_t*& finalBlendMapData) const
+	{
+		auto *info = p_Terrain -> p_Info;
+		
+		uint16_t& gridSize = info->m_GridSize;
+		float_t& gridUnitSize = info->m_GridUnitSize;
+		uint16_t numVertsPerPatchEdge = info->m_PatchEdgeSize;
+		uint16_t dataEdgeSize = numVertsPerPatchEdge + 1;
+
+		uint16_t numPatchesPerRow = gridSize / numVertsPerPatchEdge;
+		uint32_t numTexLayers = (uint32_t) info -> m_TextureCount;
+
+		int dataLength = (int) (gridSize * gridSize * numTexLayers);
+        
+        finalBlendMapData = new uint8_t[dataLength]();
+        dim = gridSize;
+		elementSize = numTexLayers; 
+
+
+		List<PTCH*>& patches = p_Terrain->p_Patches->m_Patches;
+
+		for (size_t i = 0; i < patches.Size(); i++)
+		{	
+			auto *curPatch = patches[i];
+			auto *patchInfo = curPatch -> p_PatchInfo;
+			auto *patchSplatChunk = curPatch -> m_TextureBuffer;
+			List<uint8_t>curPatchBlendMap = patchSplatChunk -> m_BlendMapData;
+
+            List<uint32_t>& slotsList = patchInfo -> m_TextureSlotsUsed;
+            int numSlotsInPatch = slotsList.Size();
+
+			int globalPatchY = i / (int) numPatchesPerRow;
+			int globalPatchX = i % (int) numPatchesPerRow;
+
+			int patchStartIndex = globalPatchY * numVertsPerPatchEdge * numPatchesPerRow * numVertsPerPatchEdge + globalPatchX * numVertsPerPatchEdge;
+
+			for (int j = 0; j < patchSplatChunk -> m_ElementCount; j++)
+			{
+				int localPatchY = j / dataEdgeSize; 
+				int localPatchX = j % dataEdgeSize;
+
+				//Starting index into final array (finalBlendMapData)
+				int globalDataIndex = numTexLayers * (patchStartIndex + localPatchY * numVertsPerPatchEdge * numPatchesPerRow + localPatchX);
+				
+				//Index into current patch's VBUF's blend data (curPatchBlendMap)
+				int localPatchIndex = numSlotsInPatch * (localPatchY * dataEdgeSize + localPatchX);
+
+				for (int k = 0; k < numSlotsInPatch; k++)
+				{
+					int slot = (int) slotsList[k];
+					int finalDataIndex = globalDataIndex + slot;
+
+					if (finalDataIndex < dataLength)
+					{	
+						finalBlendMapData[finalDataIndex] = (uint8_t) curPatchBlendMap[localPatchIndex + k];
+					}
+				}
+			}
+		}  
+	}
+
+
+	List<uint32_t> GetTriList(List<uint16_t> indexBuffer, uint32_t offset)
+	{
+		
+		List<uint32_t> result;
+
+		for (int i = 0; i < indexBuffer.Size() - 2; i++)
+		{
+			if (indexBuffer[i]   != indexBuffer[i+1] &&
+				indexBuffer[i+1] != indexBuffer[i+2] &&
+				indexBuffer[i]   != indexBuffer[i+2])
+			{
+				if (i % 2 == 0)
+				{
+					result.Add(indexBuffer[i] + offset);
+					result.Add(indexBuffer[i+1] + offset);
+					result.Add(indexBuffer[i+2]+ offset);
+				} 
+				else 
+				{
+					result.Add(indexBuffer[i+1]+ offset);
+					result.Add(indexBuffer[i]+ offset);
+					result.Add(indexBuffer[i+2]+ offset);
+				}
+			}
+		}
+
+		//LOG_WARN("Found {} degenerates out of {} tris", numDegenerates, indexBuffer.Size());
+
+		return result;
+	}
+
+
 	bool Terrain::GetIndexBuffer(ETopology requestedTopology, uint32_t& count, uint32_t*& indexBuffer) const
 	{
 		static List<uint32_t> indices;
@@ -160,7 +250,9 @@ namespace LibSWBF2::Wrappers
 					VBUF* vertexBuffer = p_Terrain->p_Patches->m_Patches[i]->m_GeometryBuffer;
 					if (indexBuffer != nullptr)
 					{
-						List<uint32_t> triangleList = TriangleStripToTriangleList(indexBuffer->m_IndexBuffer, vertexOffset);
+						//List<uint32_t> triangleList = TriangleStripToTriangleList(indexBuffer->m_IndexBuffer, vertexOffset);
+						List<uint32_t> triangleList = GetTriList(indexBuffer->m_IndexBuffer, vertexOffset);
+
 						indices.Append(triangleList);
 						vertexOffset += (uint32_t)vertexBuffer->m_TerrainBuffer.Size();
 					}
@@ -218,24 +310,6 @@ namespace LibSWBF2::Wrappers
 		vertexBuffer = m_Positions.GetArrayPtr();
 	}
 
-	void Terrain::GetVertexBufferRaw(uint32_t& count, float_t*& buffer) const
-	{
-        Vector3 *vertexBuffer = m_Positions.GetArrayPtr();
-        uint32_t numVerts = m_Positions.Size();
-        float_t *rawVerts = new float_t[numVerts * 3];
-
-        for (int i = 0; i < numVerts; i++)
-        {
-            Vector3& curVert = vertexBuffer[i];
-            rawVerts[i * 3]     = curVert.m_X;
-            rawVerts[i * 3 + 1] = curVert.m_Y;
-            rawVerts[i * 3 + 2] = curVert.m_Z;
-        }
-
-        count = numVerts;
-        buffer = rawVerts;
-	}
-
 	void Terrain::GetNormalBuffer(uint32_t& count, Vector3*& normalBuffer) const
 	{
 		count = (uint32_t)m_Normals.Size();
@@ -260,15 +334,15 @@ namespace LibSWBF2::Wrappers
 	}
 
 
-	void Terrain::GetHeights(uint32_t& width, uint32_t& height, float_t*& heightData) const {
-
+	void Terrain::GetHeightMap(uint32_t& dim, uint32_t& dimScale, float_t*& heightData) const
+    {
         auto info = p_Terrain -> p_Info;
 
-        float_t gridSize = (float_t) info -> m_GridSize;
+        float_t gridSize     = (float_t) info -> m_GridSize;
 		float_t gridUnitSize = (float_t) info -> m_GridUnitSize;
 
-		float_t maxY = (float_t) info -> m_HeightCeiling;
-       	float_t minY = (float_t) info -> m_HeightFloor;
+		float_t maxY = info -> m_HeightCeiling;
+       	float_t minY = info -> m_HeightFloor;
 
        	float_t halfLength = gridSize * gridUnitSize / 2.0f;
        	float_t maxZ = halfLength, minZ = -halfLength;
@@ -279,7 +353,67 @@ namespace LibSWBF2::Wrappers
 
         int heightsLength = (int) gridSize * gridSize;
 		heightData = new float_t[heightsLength]();
+		dim = (uint32_t) info -> m_GridSize;
+		dimScale = (uint32_t) info -> m_GridUnitSize;
 
+		for (int i = 0; i < numVerts; i++)
+		{
+			heightData[i] = -1.0f;
+		}
+
+		uint32_t ibufLength;
+		uint32_t *ibufData;
+		GetIndexBuffer(ETopology::TriangleList, ibufLength, ibufData);
+
+
+		for (int i = 0; i < (int) ibufLength; i++)
+		{
+			int curInd = (int) ibufData[i];
+			Vector3& curVert = vertexBuffer[curInd];
+        	
+        	float_t xFrac = (curVert.m_X - minX)/(maxX - minX);
+        	float_t yFrac = (curVert.m_Y - minY)/(maxY - minY);
+        	float_t zFrac = (curVert.m_Z - minZ)/(maxZ - minZ);
+
+        	int uIndex = (int) (xFrac * gridSize + .00001f);
+        	int vIndex = (int) (zFrac * gridSize + .00001f);
+            int dataIndex = uIndex + vIndex * (int) gridSize;
+
+            if (uIndex < (int) gridSize && vIndex < (int) gridSize)
+            {
+                heightData[dataIndex] = yFrac;
+                //holesTex[dataIndex]++;
+            }
+		}
+		/*
+		float avg = 0.0f;
+		float max = -1000, min = 1000;
+		float numrefs;
+		for (int i = 0; i < heightsLength; i++)
+		{
+			numrefs = (float) holesTex[i];
+			avg += numrefs;
+
+			if (((int) numrefs) < 6)
+			{
+				heightData[i] = 0.0f;
+			}
+			else {
+				heightData[i] = 1.0f;
+			}
+
+			max = numrefs > max ? numrefs : max;
+			min = (numrefs < min) ? numrefs : min;
+		}
+
+		for (int i = 0; i < heightsLength; i++)
+		{
+			//heightData[i] = (((float) holesTex[i]) - min) / (max - min);
+		}
+		*/
+		//LOG_WARN("Average num index refs: {}, min: {}, max: {}", avg / ((float) heightsLength), min, max);
+
+		/*
         for (int i = 0; i < numVerts; i++)
         {
         	Vector3& curVert = vertexBuffer[i];
@@ -296,12 +430,14 @@ namespace LibSWBF2::Wrappers
                 heightData[dataIndex] = yFrac;
             }
         }
-
-        width = (uint32_t) gridSize;
-        height = (uint32_t) gridSize;
+        */
 	}
 
-
+	void Terrain::GetHeightBounds(float_t& floor, float_t& ceiling) const 
+	{
+		ceiling = p_Terrain -> p_Info -> m_HeightCeiling;
+       	floor   = p_Terrain -> p_Info -> m_HeightFloor;
+	}
 
 	const List<String>& Terrain::GetLayerTextures() const
 	{

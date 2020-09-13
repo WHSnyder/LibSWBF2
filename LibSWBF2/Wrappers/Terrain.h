@@ -44,8 +44,6 @@ namespace LibSWBF2::Wrappers
 		// count is number of vectors, NOT number of bytes!
 		void GetVertexBuffer(uint32_t& count, Vector3*& vertexBuffer) const;
 
-		void GetVertexBufferRaw(uint32_t& count, float_t*& vertexBuffer) const;
-
 		// count is number of vectors, NOT number of bytes!
 		void GetNormalBuffer(uint32_t& count, Vector3*& normalBuffer) const;
 
@@ -55,7 +53,11 @@ namespace LibSWBF2::Wrappers
 		// count is number of vectors, NOT number of bytes!
 		void GetUVBuffer(uint32_t& count, Vector2*& uvBuffer) const;
 
-		void GetHeights(uint32_t& width, uint32_t& height, float_t*& heightData) const;
+		void GetHeightMap(uint32_t& dim, uint32_t& dimScale, float_t*& heightData) const;
+
+		void GetBlendMap(uint32_t& dim, uint32_t& numLayers, uint8_t*& imgData) const;
+
+		void GetHeightBounds(float_t& floor, float_t& ceiling) const;
  
 		// Texture name for each terrain layer. Usually 16 layers
 		const List<String>& GetLayerTextures() const;

@@ -11,7 +11,7 @@ namespace LibSWBF2.Wrappers
 {
     public class World : NativeWrapper
     {
-        public World(IntPtr worldPtr) : base(worldPtr){}
+        internal World(IntPtr worldPtr) : base(worldPtr){}
 
         public World() : base(IntPtr.Zero){}
 
@@ -28,7 +28,7 @@ namespace LibSWBF2.Wrappers
         {
             if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
             APIWrapper.World_GetInstances(NativeInstance, out IntPtr instArr, out uint instCount);
-            return MemUtils.ptrsToObjects<Instance>(instArr, (int) instCount);
+            return MemUtils.IntPtrToWrapperArray<Instance>(instArr, (int) instCount);
         }
     }
 }

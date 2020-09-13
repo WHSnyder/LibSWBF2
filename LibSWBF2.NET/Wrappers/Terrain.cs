@@ -19,61 +19,53 @@ namespace LibSWBF2.Wrappers
         public Terrain() : base(IntPtr.Zero){}
 
 
-        public int width;
-        public int height;
 
-        public List<string> TextureNames
+        public void GetHeightBounds(out float floor, out float ceiling)
         {
-            get 
-            {
-                if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
-                APIWrapper.Terrain_GetTexNames(NativeInstance, out uint numTextures, out IntPtr stringsPtr);
-                return MemUtils.ptrToStringList(stringsPtr, (int) numTextures);
-            }
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            APIWrapper.Terrain_GetHeightBounds(NativeInstance, out floor, out ceiling);
         }
 
-        public float[] Vertices
-        {
-            get
-            {
-                if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
-                APIWrapper.Terrain_GetVerts(NativeInstance, out uint numVerts, out IntPtr vertsNative);
 
-                float[] rawVerts = new float[((int)numVerts) * 3];
-                Marshal.Copy(vertsNative, rawVerts, 0, (int) numVerts * 3);
-                return rawVerts;
-            }
+        public List<string> GetTextureNames()
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            APIWrapper.Terrain_GetTexNames(NativeInstance, out uint numTextures, out IntPtr stringsPtr);
+            return MemUtils.IntPtrToStringList(stringsPtr, (int) numTextures);   
         }
 
-        public float[] Heights
+
+        public void GetHeightMap(out uint dim, out uint dimScale, out float[] data) 
         {
-            get
-            {
-                if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
-                APIWrapper.Terrain_GetHeights(NativeInstance, out uint _width, out uint _height, out IntPtr heightsNative);
-                width = (int) _width;
-                height = (int) _width;
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            APIWrapper.Terrain_GetHeightMap(NativeInstance, out dim, out dimScale, out IntPtr heightsNative);
 
-                Console.WriteLine("Heights width = " + _width);
-                Console.WriteLine("Heights height = " + _height);
+            int dataLength = (int) (dim * dim);
 
-                float[] heights = new float[(int) width * width];
-                Marshal.Copy(heightsNative, heights, 0, (int) width * width);
-                return heights;
-            }
+            float[] heights = new float[dataLength];
+            Marshal.Copy(heightsNative, heights, 0, dataLength);
+            data = heights;
+
+            //For now, height maps aren't actual members of the ptch chunks/Terrain wrappers,
+            //so the managed representation must be freed explicitly
+            Marshal.FreeHGlobal(heightsNative); 
         }
 
-        public int[] Indicies
-        {
-            get
-            {
-                if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
-                APIWrapper.Terrain_GetIndicies(NativeInstance, out uint numInds, out IntPtr indiciesNative);
 
-                int[] rawInds = new int[(int) numInds];
-                Marshal.Copy(indiciesNative, rawInds, 0, (int) numInds);
-                return rawInds;
-            }
-        }
+        public void GetBlendMap(out uint dim, out uint numLayers, out byte[] data)
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            APIWrapper.Terrain_GetBlendMap(NativeInstance, out dim, out numLayers, out IntPtr bytesNative);
+
+            int dataLength = (int) (dim * dim * numLayers);
+
+            byte[] byteArray = new byte[dataLength];
+            Marshal.Copy(bytesNative, byteArray, 0, dataLength);
+            data = byteArray; 
+
+            //For now, blend maps aren't actual members of the ptch chunks/Terrain wrappers,
+            //so the managed representation must be freed explicitly
+            Marshal.FreeHGlobal(bytesNative); 
+        } 
     }
 }

@@ -49,12 +49,10 @@ namespace LibSWBF2.Wrappers
                 {
                     child.Invalidate();
                 }
-                else
-                {
-                    Children.Remove(childRef);
-                }
             }
+            Children.Clear();
         }
+
 
         public static Level FromFile(string path)
         {
@@ -69,24 +67,22 @@ namespace LibSWBF2.Wrappers
             return level;
         }
 
+
         public bool IsWorldLevel
         {
             get { return APIWrapper.Level_IsWorldLevel(NativeInstance); }
         }
 
+
         public Model[] GetModels()
         {
             APIWrapper.Level_GetModels(NativeInstance, out IntPtr modelArr, out uint modelCount);
-            IntPtr[] modelPtrs= new IntPtr[modelCount];
-            Marshal.Copy(modelArr, modelPtrs, 0, (int)modelCount);
+            Model[] models = MemUtils.IntPtrToWrapperArray<Model>(modelArr, (int) modelCount);
 
-            Model[] models = new Model[modelCount];
             for (int i = 0; i < modelCount; i++)
             {
-                models[i] = new Model(modelPtrs[i]);
                 Children.Add(new WeakReference<NativeWrapper>(models[i]));
             }
-
             return models;
         }
 
@@ -95,7 +91,7 @@ namespace LibSWBF2.Wrappers
         {
             if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
             APIWrapper.Level_GetWorlds(NativeInstance, out IntPtr worldArr, out uint worldCount);
-            return MemUtils.ptrsToObjects<World>(worldArr, (int) worldCount);
+            return MemUtils.IntPtrToWrapperArray<World>(worldArr, (int) worldCount);
         }
 
 
@@ -112,19 +108,22 @@ namespace LibSWBF2.Wrappers
             return model;
         }
 
-        public Terrain GetTerrain()
+
+        public Terrain[] GetTerrains()
         {   
-            IntPtr native = APIWrapper.Level_GetTerrain(NativeInstance);
-            if (native == null)
+            APIWrapper.Level_GetTerrains(NativeInstance, out IntPtr terrainsArr, out uint numTerrains);
+            Terrain[] terrains = MemUtils.IntPtrToWrapperArray<Terrain>(terrainsArr, (int) numTerrains);
+
+            for (int i = 0; i < numTerrains; i++)
             {
-                return null;
+                //Children.Add(new WeakReference<NativeWrapper>(terrains[i]));
             }
 
-            Terrain ter = new Terrain(native);
-            return ter;
+            return terrains;
         }
 
-        public bool GetTexture(string name, out byte[] texBytes, out int width, out int height)
+
+        public bool GetTexture(string name, out int width, out int height, out byte[] texBytes)
         {
             texBytes = null;
             bool result = APIWrapper.Level_GetTextureData(NativeInstance, name, out IntPtr bytesRaw, out width, out height);
@@ -133,6 +132,7 @@ namespace LibSWBF2.Wrappers
                 texBytes = new byte[width * height * 4];
                 Marshal.Copy(bytesRaw, texBytes, 0, width * height * 4);
             }
+            Marshal.FreeHGlobal(bytesRaw); 
             return result;
         }
     }

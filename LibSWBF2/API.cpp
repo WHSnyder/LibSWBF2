@@ -82,6 +82,13 @@ namespace LibSWBF2
 	}
 
 
+	const Model* Level_GetModel(const Level* level, const char* modelName)
+	{
+		CheckPtr(level, nullptr);
+		return level->GetModel(modelName);
+	}
+
+
 	void Level_GetModels(const Level* level, const Model**& modelArr, uint32_t& modelCount)
 	{
 		CheckPtr(level, );
@@ -102,6 +109,42 @@ namespace LibSWBF2
 		modelArr = modelPtrs.GetArrayPtr();
 		modelCount = (uint32_t)modelPtrs.Size();
 	}
+
+
+    const bool Level_GetTextureData(const Level* level, const char *texName, const uint8_t*& imgData, int& width, int& height)
+    {
+    	const Texture *tex = level -> GetTexture(texName);
+    	if (tex == nullptr)
+    	{
+    		return false;
+    	}
+
+    	uint16_t w,h;
+    	tex -> GetImageData(ETextureFormat::R8_G8_B8_A8, 0, w, h, imgData);
+    	height = h;
+    	width = w;
+    	//Will add another null check
+    	return true;
+    }
+    
+
+	void Level_GetTerrains(const Level* level, const Terrain**& terrainArr, uint32_t& terrainCount)
+	{
+		CheckPtr(level, );
+		const List<Terrain>& terrains = level->GetTerrains();
+
+		static List<const Terrain*> terrainPtrs;
+		terrainPtrs.Clear();
+
+		for (size_t i = 0; i < terrains.Size(); ++i)
+		{
+			terrainPtrs.Add(&terrains[i]);
+		}
+
+		terrainArr = terrainPtrs.GetArrayPtr();
+		terrainCount = (uint32_t)terrainPtrs.Size();
+	}
+
 
 	void Level_GetWorlds(const Level* level, const World**& worldArr, uint32_t& worldCount)
 	{
@@ -125,6 +168,14 @@ namespace LibSWBF2
 	}
 
 
+	const char* ENUM_TopologyToString(ETopology topology)
+	{
+		static Types::String lastToString;
+		lastToString = TopologyToString(topology);
+		return lastToString.Buffer();
+	}
+
+
 	const char* Model_GetName(const Model* model)
 	{
 		CheckPtr(model, nullptr);
@@ -133,10 +184,9 @@ namespace LibSWBF2
 		// char buffers of String's are always null terminated, so we
 		// can just return the buffer pointer.
 		const String& name = model->GetName();
-		char *buffer = new char[strlen(name.Buffer()) + 1]();
-		strcpy(buffer, name.Buffer());
-		return buffer;
+		return name.Buffer();
 	}
+
 
 	const void Model_GetSegments(const Model* model, const Segment**& segmentArr, uint32_t& segmentCount)
 	{	
@@ -163,11 +213,13 @@ namespace LibSWBF2
 		segmentCount = (uint32_t)segmentPtrs.Size();
 	}
 
+
 	uint8_t Model_IsSkeletalMesh(const Model* model)
 	{
 		CheckPtr(model, false);
 		return model->IsSkeletalMesh();
 	}
+
 
 	uint8_t Model_GetSkeleton(const Model* model, Bone*& boneArr, uint32_t& boneCount)
 	{
@@ -187,6 +239,7 @@ namespace LibSWBF2
 		return true;
 	}
 
+
 	const void Segment_GetVertexBuffer(const Segment* segment, uint32_t& numVerts, float*& vertBuffer)
 	{
 		Vector3 *verts;
@@ -203,6 +256,7 @@ namespace LibSWBF2
 		}
 	}
 
+
 	const void Segment_GetNormalBuffer(const Segment* segment, uint32_t& numNormals, float*& normalsBuffer)
 	{
 		Vector3 *normals;
@@ -218,6 +272,7 @@ namespace LibSWBF2
 			normalsBuffer[i * 3 + 2] = curVec.m_Z;
 		}
 	}
+
 
 	const void Segment_GetUVBuffer(const Segment* segment, uint32_t& numUVs, float*& UVBuffer)
 	{
@@ -263,16 +318,12 @@ namespace LibSWBF2
 		return segmentTexName -> Buffer();
 	}
 
+
 	const int32_t Segment_GetTopology(const Segment* segment)
 	{
 		return (int32_t) segment -> GetTopology();
 	}
 
-	const Model* Level_GetModel(const Level* level, const char* modelName)
-	{
-		CheckPtr(level, nullptr);
-		return level->GetModel(modelName);
-	}
 
 	//scraped together test
 	const void Terrain_GetTexNames(const Terrain *tern, uint32_t& numTexes, char**& nameStrings)
@@ -297,60 +348,24 @@ namespace LibSWBF2
         numTexes = (uint32_t) numTextures;
 	}
 
-    const void Terrain_GetVerts(const Terrain* ter, uint32_t& numVerts, float_t *& result)
+
+    const void Terrain_GetHeightMap(const Terrain *ter, uint32_t& dim, uint32_t& dimScale, float_t*& heightData)
     {
-        ter -> GetVertexBufferRaw(numVerts, result);
-    }
-
-    const void Terrain_GetIndicies(const Terrain* ter, uint32_t& numInds, int *& result)
-    {
-    	uint32_t *indicies;
-        ter -> GetIndexBuffer(ETopology::TriangleList, numInds, indicies);
-
-        int *convertedIndicies = new int[numInds];
-
-        for (int i = 0; i < numInds; i++)
-        {
-        	convertedIndicies[i] = (int) indicies[i];
-        }
-
-        result = convertedIndicies;
-    }
-
-    const void Terrain_GetHeights(const Terrain *ter, uint32_t& width, uint32_t height, float_t*& heightData)
-    {
-    	ter -> GetHeights(width, height, heightData);
+    	ter -> GetHeightMap(dim, dimScale, heightData);
     }
 
 
-    const bool Level_GetTextureData(const Level* level, const char *texName, const uint8_t*& imgData, int& width, int& height)
-    {
-    	const Texture *tex = level -> GetTexture(texName);
-    	if (tex == nullptr)
-    	{
-    		return false;
-    	}
-
-    	uint16_t w,h;
-    	tex -> GetImageData(ETextureFormat::R8_G8_B8_A8, 0, w, h, imgData);
-    	height = h;
-    	width = w;
-    	//Will add another null check
-    	return true;
-    }
-
-	const Terrain* Level_GetTerrain(const Level* level)
+	const void Terrain_GetBlendMap(const Terrain *ter, uint32_t& dim, uint32_t& numLayers, uint8_t*& data)
 	{
-		CheckPtr(level, nullptr);
-        return level -> GetTerrains().GetArrayPtr();
+		ter -> GetBlendMap(dim, numLayers, data);
 	}
 
-	const char* ENUM_TopologyToString(ETopology topology)
+
+	const void Terrain_GetHeightBounds(const Terrain *ter, float& floor, float& ceiling)
 	{
-		static Types::String lastToString;
-		lastToString = TopologyToString(topology);
-		return lastToString.Buffer();
+		ter -> GetHeightBounds(floor, ceiling);
 	}
+
 
 	const char* ENUM_MaterialFlagsToString(EMaterialFlags flags)
 	{
