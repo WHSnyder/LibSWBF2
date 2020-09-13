@@ -181,38 +181,6 @@ namespace LibSWBF2::Wrappers
 	}
 
 
-	List<uint32_t> GetTriList(List<uint16_t> indexBuffer, uint32_t offset)
-	{
-		
-		List<uint32_t> result;
-
-		for (int i = 0; i < indexBuffer.Size() - 2; i++)
-		{
-			if (indexBuffer[i]   != indexBuffer[i+1] &&
-				indexBuffer[i+1] != indexBuffer[i+2] &&
-				indexBuffer[i]   != indexBuffer[i+2])
-			{
-				if (i % 2 == 0)
-				{
-					result.Add(indexBuffer[i] + offset);
-					result.Add(indexBuffer[i+1] + offset);
-					result.Add(indexBuffer[i+2]+ offset);
-				} 
-				else 
-				{
-					result.Add(indexBuffer[i+1]+ offset);
-					result.Add(indexBuffer[i]+ offset);
-					result.Add(indexBuffer[i+2]+ offset);
-				}
-			}
-		}
-
-		//LOG_WARN("Found {} degenerates out of {} tris", numDegenerates, indexBuffer.Size());
-
-		return result;
-	}
-
-
 	bool Terrain::GetIndexBuffer(ETopology requestedTopology, uint32_t& count, uint32_t*& indexBuffer) const
 	{
 		static List<uint32_t> indices;
@@ -250,8 +218,7 @@ namespace LibSWBF2::Wrappers
 					VBUF* vertexBuffer = p_Terrain->p_Patches->m_Patches[i]->m_GeometryBuffer;
 					if (indexBuffer != nullptr)
 					{
-						//List<uint32_t> triangleList = TriangleStripToTriangleList(indexBuffer->m_IndexBuffer, vertexOffset);
-						List<uint32_t> triangleList = GetTriList(indexBuffer->m_IndexBuffer, vertexOffset);
+						List<uint32_t> triangleList = TriangleStripToTriangleList(indexBuffer->m_IndexBuffer, vertexOffset);
 
 						indices.Append(triangleList);
 						vertexOffset += (uint32_t)vertexBuffer->m_TerrainBuffer.Size();

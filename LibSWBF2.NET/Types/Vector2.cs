@@ -13,6 +13,12 @@ namespace LibSWBF2.Types
         	APIWrapper.Vector2_FromPtr(nativePtr, out X, out Y);
         }
 
+        public Vector2(float val = 0)
+        {
+            X = 0.0f;
+            Y = 0.0f;
+        }
+
         public override String ToString()
         {
             return "(" + X + ", " + Y + ")";

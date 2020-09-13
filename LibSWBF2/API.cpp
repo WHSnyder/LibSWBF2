@@ -168,6 +168,28 @@ namespace LibSWBF2
 	}
 
 
+	void Level_GetLights(const Level* level, const Light**& LightArr, uint32_t& LightCount)
+	{
+		CheckPtr(level, );
+		const List<Light>& Lights = level->GetLights();
+
+		// since level->GetModels() just returns a reference to the actual list
+		// member of level, which will persist even after this call ended, we can safely
+		// provide the model addresses of the underlying buffer to the inquirer.
+		// The inquirer of course is not allowed to alter the data!
+		static List<const Light*> LightPtrs;
+		LightPtrs.Clear();
+
+		for (size_t i = 0; i < Lights.Size(); ++i)
+		{
+			LightPtrs.Add(&Lights[i]);
+		}
+
+		LightArr = LightPtrs.GetArrayPtr();
+		LightCount = (uint32_t) LightPtrs.Size();
+	}
+
+
 	const char* ENUM_TopologyToString(ETopology topology)
 	{
 		static Types::String lastToString;
@@ -292,7 +314,7 @@ namespace LibSWBF2
 	const void Segment_GetIndexBuffer(const Segment* segment, uint32_t& numInds, int*& indexBuffer)
 	{
 		uint16_t *indicies;
-		segment -> GetIndexBuffer(numInds, indicies);
+		segment -> GetIndexBuffer(numInds, indicies, ETopology::TriangleList);
 
 		indexBuffer = new int[numInds];
 
@@ -301,6 +323,24 @@ namespace LibSWBF2
 			indexBuffer[i] = (int) indicies[i];
 		}
 	}
+
+
+	const char* Segment_GetMaterial(const Segment* segment)
+	{
+		//static const char *missing = "TEXTURE_MISSING";
+		const Material& segmentMat = segment -> GetMaterial();
+		const Texture* segmentTex = segmentMat.GetTexture(0);//?
+
+		if (segmentTex == nullptr)
+		{
+			String *missing = new String("");
+			return missing -> Buffer();
+		}
+
+		String *segmentTexName = new String(segmentTex -> GetName());
+		return segmentTexName -> Buffer();
+	}
+
 	
 	const char* Segment_GetMaterialTexName(const Segment* segment)
 	{
@@ -448,4 +488,35 @@ namespace LibSWBF2
     	x = vec -> m_X;
     	y = vec -> m_Y;
     } 
+
+
+    const char* Light_GetAllFields(const Light* lightPtr, Vector4*& rotPtr,
+                                    Vector3*& posPtr, uint32_t& lightType, 
+                                    Vector3*& colPtr, float_t& range,
+                                    Vector2*& conePtr)
+    {
+    	static Vector3 lastPos, lastCol;
+    	static Vector4 lastRot; 
+    	static Vector2 lastCone(0,0);	
+    	float_t inner=0,outer=0;
+
+    	lastRot  = lightPtr -> GetRotation();
+    	lastPos  = lightPtr -> GetPosition();
+    	lastCol  = lightPtr -> GetColor();
+
+    	lightPtr -> GetSpotAngles(inner,outer);
+    	lastCone = Vector2(inner,outer);
+
+    	lightType = (uint32_t) lightPtr -> GetType();
+    	lightPtr -> GetRange(range);
+
+    	rotPtr  = &lastRot;
+    	colPtr  = &lastCol;
+    	posPtr  = &lastPos;
+    	conePtr = &lastCone;
+
+    	const String& name = lightPtr -> GetName();
+    	return name.Buffer();
+    }
+
 }

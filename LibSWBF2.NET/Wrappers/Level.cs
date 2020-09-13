@@ -87,6 +87,14 @@ namespace LibSWBF2.Wrappers
         }
 
 
+        public Light[] GetLights()
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            APIWrapper.Level_GetLights(NativeInstance, out IntPtr LightArr, out uint LightCount);
+            return MemUtils.IntPtrToWrapperArray<Light>(LightArr, (int) LightCount);
+        }    
+
+
         public World[] GetWorlds()
         {
             if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
@@ -116,7 +124,7 @@ namespace LibSWBF2.Wrappers
 
             for (int i = 0; i < numTerrains; i++)
             {
-                //Children.Add(new WeakReference<NativeWrapper>(terrains[i]));
+                Children.Add(new WeakReference<NativeWrapper>(terrains[i]));
             }
 
             return terrains;
