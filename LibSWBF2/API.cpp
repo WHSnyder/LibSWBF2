@@ -233,8 +233,10 @@ namespace LibSWBF2
 		// model->GetName() returns a ref to the persistent member,
 		// char buffers of String's are always null terminated, so we
 		// can just return the buffer pointer.
-		const String& name = model->GetName();
-		return name.Buffer();
+		//const String& name = model->GetName();
+
+		String *name = new String(model -> GetName());
+		return name -> Buffer();
 	}
 
 
