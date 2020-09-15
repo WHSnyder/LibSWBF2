@@ -4,6 +4,7 @@
 #include "InternalHelpers.h"
 #include "Chunks/LVL/common/SCOP.h"
 #include "Chunks/LVL/common/DATA.h"
+#include "Chunks/LVL/common/PROP.h"
 #include "Chunks/LVL/lght/lght.h"
 #include "Wrappers/Light.h"
 
@@ -485,14 +486,14 @@ namespace LibSWBF2
 	template class LIBSWBF2_API Types::List<LVL::terrain::PTCH*>;
 	template class LIBSWBF2_API Types::List<LVL::terrain::VBUF*>;
 
-
 	template class LIBSWBF2_API Types::List<LVL::lght::lght*>;
 	template class LIBSWBF2_API Types::List<LVL::lght::SCOP_LGHT*>;
 	template class LIBSWBF2_API Types::List<LVL::lght::DATA_STRING*>;
 
     template class LIBSWBF2_API Types::List<LVL::common::DATA*>;
     template class LIBSWBF2_API Types::List<LVL::common::SCOP*>;
-	
+    template class LIBSWBF2_API Types::List<LVL::common::PROP*>;
+
 	template class LIBSWBF2_API Types::List<Wrappers::Light>;
 	template class LIBSWBF2_API Types::List<Wrappers::Model>;
 	template class LIBSWBF2_API Types::List<Wrappers::Segment>;
@@ -519,4 +520,7 @@ namespace LibSWBF2
 	template class LIBSWBF2_API Types::List<Wrappers::Sound>;
 	template class LIBSWBF2_API Types::List<Wrappers::Localization>;
 
+	template class LIBSWBF2_API Types::List<Wrappers::EntityClass>;
+	template class LIBSWBF2_API Types::List<const Wrappers::Texture*>;
+	template class LIBSWBF2_API Types::List<const Wrappers::Model*>;
 }

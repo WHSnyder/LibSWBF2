@@ -81,6 +81,7 @@ namespace LibSWBF2
 		LIBSWBF2_API const char* ENUM_TopologyToString(ETopology topology);
 		LIBSWBF2_API const char* ENUM_MaterialFlagsToString(EMaterialFlags flags);
 		LIBSWBF2_API const char* ENUM_EVBUFFlagsToString(EVBUFFlags flags);
+		LIBSWBF2_API const char* ENUM_VBUFFlagsToString(EVBUFFlags flags);
 
 		// Wrappers - Terrain
         LIBSWBF2_API const void Terrain_GetTexNames(const Terrain *ter, uint32_t& numTexes, char**& result);
