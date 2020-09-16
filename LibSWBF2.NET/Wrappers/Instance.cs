@@ -36,5 +36,11 @@ namespace LibSWBF2.Wrappers
             if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
             return new Vector3(APIWrapper.Instance_GetPosition(NativeInstance));
         }
+
+        public string GetModelName()
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            return APIWrapper.Instance_GetModelName(NativeInstance);
+        }
     }
 }

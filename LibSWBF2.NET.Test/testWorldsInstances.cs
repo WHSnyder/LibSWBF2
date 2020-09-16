@@ -42,9 +42,14 @@ namespace LibSWBF2.NET.Test
                         Vector4 rot = instance.GetRotation();
                         Vector3 pos = instance.GetPosition();
 
-                        Console.WriteLine("\t\t" + "Name: " + instName + 
-                                        "\n\t\tRotation: " + rot.ToString() +
-                                        "\n\t\tPosition: " + pos.ToString());
+                        string modelName = instance.GetModelName();
+                        if (modelName != "")
+                        {
+                            Console.WriteLine("\t\t" + "Name: " + instName       + 
+                                        "\n\t\tRotation: "      + rot.ToString() +
+                                        "\n\t\tPosition: "      + pos.ToString() +  
+                                        "\n\t\tModel name: "    + modelName);                  
+                        }
                     }
                 } 
             }

@@ -490,6 +490,20 @@ namespace LibSWBF2
     	return new Vector3(instance -> GetPosition());
     }
 
+    const char * Instance_GetModelName(const Instance* instance)
+    {
+    	static const String geometryNameProperty("GeometryName");
+		const EntityClass *instanceClass = instance -> GetEntityClass();
+		static String geometryName; 
+
+		if (instanceClass != nullptr && instanceClass -> GetProperty(geometryNameProperty,geometryName))
+		{
+			return (new String(geometryName.Buffer())) -> Buffer();
+		}
+
+		return (new String("")) -> Buffer();
+    }
+
     const void Vector4_FromPtr(const Vector4* vec, float& x, float& y, float& z, float &w)
     {
     	x = vec -> m_X;

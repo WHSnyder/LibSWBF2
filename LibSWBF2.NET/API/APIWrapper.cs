@@ -159,6 +159,11 @@ namespace LibSWBF2
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Instance_GetPosition(IntPtr instance);
 
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)] 
+        public static extern string Instance_GetModelName(IntPtr instance);
+
+
 
 
         // Light //

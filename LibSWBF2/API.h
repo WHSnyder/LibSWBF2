@@ -97,6 +97,8 @@ namespace LibSWBF2
         LIBSWBF2_API const char* 	Instance_GetName(const Instance* instance);
         LIBSWBF2_API const Vector4* Instance_GetRotation(const Instance* instance);
         LIBSWBF2_API const Vector3* Instance_GetPosition(const Instance* instance);
+        LIBSWBF2_API const char *   Instance_GetModelName(const Instance* instance);
+
 
         // Wrappers - Vectors
 		LIBSWBF2_API const void Vector4_FromPtr(const Vector4* vec, float_t& x, float_t& y, float_t& z, float_t &w);        
