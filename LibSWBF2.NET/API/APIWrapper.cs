@@ -144,6 +144,20 @@ namespace LibSWBF2
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Terrain_GetIndexBuffer(IntPtr terPtr, out IntPtr buf, out int numInds);
 
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool Terrain_GetPatchBlendData(IntPtr terr, int patchNum, out int numTexSlots, out IntPtr texSlots, out int blendDataLength, out IntPtr blendData);
+
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool Terrain_GetPatchIndexBuffer(IntPtr terr, int patchNum, out int numInds, out IntPtr indsBuffer);
+     
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static extern bool Terrain_GetPatchVertexBuffer(IntPtr terr, int patchNum, out int numVerts, out IntPtr vertBuffer);
+
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int Terrain_GetNumPatches(IntPtr terr);
 
 
         // Model //

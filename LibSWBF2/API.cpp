@@ -505,6 +505,65 @@ namespace LibSWBF2
 	}
 
 
+	const bool Terrain_GetPatchBlendData(const Terrain *terr, int32_t patchNum, int32_t& numTexSlots, uint32_t*& texSlots, int32_t& blendDataLength, uint8_t *& blendData)
+	{
+		static List<uint8_t> blendDataCache;
+		static List<uint32_t> texSlotsCache;
+
+		if (terr -> GetPatchBlendData(patchNum, texSlotsCache, blendDataCache))
+		{
+			numTexSlots = texSlotsCache.Size();
+			texSlots = texSlotsCache.GetArrayPtr();
+
+			blendDataLength = blendDataCache.Size();
+			blendData = blendDataCache.GetArrayPtr();
+
+			return true;
+		}
+
+		return false;
+	}
+
+
+	const bool Terrain_GetPatchIndexBuffer(const Terrain *terr, int32_t patchNum, int32_t& numInds, uint32_t*& indsBuffer)
+	{
+		static List<uint32_t> indicesCache;
+
+		if (terr -> GetPatchIndexBuffer(patchNum, ETopology::TriangleList, indicesCache))
+		{
+			numInds = indicesCache.Size();
+			indsBuffer = indicesCache.GetArrayPtr();
+
+			return true;
+		}
+
+		return false;
+	}
+
+
+	const bool Terrain_GetPatchVertexBuffer(const Terrain *terr, int32_t patchNum, int32_t& numVerts, float_t*& vertBuffer)
+	{
+		static List<float_t> vertsCache;
+
+		if (terr -> GetPatchVertexBuffer(patchNum, vertsCache))
+		{
+			numVerts = vertsCache.Size();
+			vertBuffer = vertsCache.GetArrayPtr();
+
+			return true;
+		}
+
+		return false;
+	}
+
+
+	const int32_t Terrain_GetNumPatches(const Terrain *terr)
+	{
+		return (int32_t) terr -> GetNumPatches();
+	}
+
+
+
 	const char* Model_GetName(const Model* model)
 	{
 		static String nameString;

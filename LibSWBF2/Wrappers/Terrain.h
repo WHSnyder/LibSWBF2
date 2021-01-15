@@ -46,9 +46,11 @@ namespace LibSWBF2::Wrappers
 
 		// count is number of indices, NOT number of bytes!
 		bool GetIndexBuffer(ETopology requestedTopology, uint32_t& count, uint32_t*& indexBuffer) const;
+    	bool GetPatchIndexBuffer(uint32_t patchNum, ETopology requestedTopology, List<uint32_t>& indexBufferOut) const;
 
 		// count is number of vectors, NOT number of bytes!
 		void GetVertexBuffer(uint32_t& count, Vector3*& vertexBuffer) const;
+		bool GetPatchVertexBuffer(uint32_t patchNum, List<float_t>& vertexBufferOut) const;
 
 		void GetVertexBufferRaw(uint32_t& count, float_t*& vertexBuffer) const;
 
@@ -64,10 +66,14 @@ namespace LibSWBF2::Wrappers
 		void GetHeightMap(uint32_t& dim, uint32_t& dimScale, float_t*& heightData) const;
 
 		void GetBlendMap(uint32_t& dim, uint32_t& numLayers, uint8_t*& imgData) const;
+		bool GetPatchBlendData(uint32_t patchNum, List<uint32_t>& texSlotsOut, List<uint8_t> &blendMapOut) const;
 
 		void GetHeightBounds(float_t& floor, float_t& ceiling) const;
  
 		// Texture name for each terrain layer. Usually 16 layers
 		const List<String>& GetLayerTextures() const;
+
+		uint32_t GetNumPatches() const;
+
 	};
 }

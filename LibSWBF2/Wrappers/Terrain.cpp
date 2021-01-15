@@ -275,6 +275,200 @@ namespace LibSWBF2::Wrappers
 		return true;
 	}
 
+
+    bool Terrain::GetPatchIndexBuffer(uint32_t patchNum, ETopology requestedTopology, List<uint32_t>& indexBufferOut) const
+	{
+		List<uint32_t> indices;
+
+		if (requestedTopology == ETopology::TriangleList)
+		{
+			uint16_t& gridSize = p_Terrain->p_Info->m_GridSize;
+			uint16_t& patchEdgeSize = p_Terrain->p_Info->m_PatchEdgeSize;
+
+			// apparently patch data overlaps with neighbouring patches by one (e.g. 9x9=81 instead of 8x8=64)
+			uint16_t dataEdgeSize = patchEdgeSize + 1;
+
+			uint32_t numPatches = (gridSize * gridSize) / (patchEdgeSize * patchEdgeSize);
+			uint32_t verticesPerPatch = dataEdgeSize * dataEdgeSize;
+
+			uint32_t vertexOffset = 0;
+
+			// geometry index buffer is optional, most patches don't have them.
+			// this is most likely only for patches with baked in terrain cuts.
+			// if no custom index buffer is specified, we build the index buffer ourselfs
+			IBUF* indexBuffer = p_Terrain->p_Patches->m_Patches[patchNum]->m_GeometryIndexBuffer;
+			VBUF* vertexBuffer = p_Terrain->p_Patches->m_Patches[patchNum]->m_GeometryBuffer;
+			if (indexBuffer != nullptr)
+			{
+				List<uint32_t> triangleList = TriangleStripToTriangleList(indexBuffer->m_IndexBuffer, vertexOffset);
+
+				indices.Append(triangleList);
+				vertexOffset += (uint32_t)vertexBuffer->m_TerrainBuffer.Size();
+			}
+			else
+			{
+				// actually z in world space (y is height), but whatever...
+				for (uint16_t y = 0; y < patchEdgeSize; ++y)
+				{
+					for (uint16_t x = 0; x < patchEdgeSize; ++x)
+					{
+						uint32_t globalX = x + vertexOffset;
+						uint32_t globalY = y + vertexOffset;
+
+						uint32_t a, b, c, d;
+
+						// get 4 points for quad
+						a = globalX + (y * dataEdgeSize);
+						b = globalX + ((y + 1) * dataEdgeSize);
+						c = (globalX + 1) + (y * dataEdgeSize);
+						d = (globalX + 1) + ((y + 1) * dataEdgeSize);
+
+						// triangle 1 clockwise
+						indices.Add(a);
+						indices.Add(b);
+						indices.Add(c);
+
+						// triangle 2 clockwise
+						indices.Add(c);
+						indices.Add(b);
+						indices.Add(d);
+					}
+				}
+
+				vertexOffset += verticesPerPatch;
+			}
+		}
+		else
+		{
+			LOG_WARN("Requested terrain index buffer as (yet) unsupported topology '{}'!", TopologyToString(requestedTopology));
+			return false;
+		}
+
+		indexBufferOut = std::move(indices);
+		return true;
+	}
+
+
+	bool Terrain::GetPatchVertexBuffer(uint32_t patchNum, List<float_t>& vertexBufferOut) const
+	{
+		List<float_t> vertices;
+
+		uint16_t& gridSize = p_Terrain->p_Info->m_GridSize;
+		float_t& gridUnitSize = p_Terrain->p_Info->m_GridUnitSize;
+		uint16_t& numVertsPerPatchEdge = p_Terrain->p_Info->m_PatchEdgeSize;
+		uint16_t dataEdgeSize = numVertsPerPatchEdge + 1;
+		float_t patchDistance = gridUnitSize * numVertsPerPatchEdge;
+
+		uint16_t numPatchesPerRow = gridSize / numVertsPerPatchEdge;
+		uint16_t patchColumnIndex = 0;
+
+		float_t terrainEdgeUnitSize = gridSize * gridUnitSize;
+		float_t distToCenter = terrainEdgeUnitSize / 2.0f;
+
+		// apparently patch data overlaps with neighbouring patches by one (e.g. 9x9=81 instead of 8x8=64)
+		uint32_t numVertsPerPatch = dataEdgeSize * dataEdgeSize;
+
+		// start offset in negative size/2, so terrain origin lies in the center
+		// For some reason, terrain seems to be offset by gridUnitSize in Z direction...
+		glm::vec3 patchOffset = { 0.0f, 0.0f, -distToCenter + gridUnitSize };
+
+		List<PTCH*>& patches = p_Terrain->p_Patches->m_Patches;
+
+		if (patchNum > patches.Size())
+		{
+			LOG_WARN("Patch index {} out of bounds ({})", patchNum, patches.Size());
+			return false;
+		}
+
+		VBUF* vertexBuffer = patches[patchNum]->m_GeometryBuffer;
+		if (vertexBuffer == nullptr)
+		{
+			LOG_WARN("Patch with index {} does not have any vertex buffer! Skipping...", patchNum);
+			return false;
+		}
+
+		if (vertexBuffer->m_ElementSize != 28)
+		{
+			LOG_WARN("Expected terrain VBUF buffer entry size of 28, but got {}! Patch index: {}", vertexBuffer->m_ElementSize, patchNum);
+			return false;
+		}
+
+		List<Types::TerrainBufferEntry>& terrainBuffer = vertexBuffer->m_TerrainBuffer;
+		if (vertexBuffer->m_ElementCount != terrainBuffer.Size())
+		{
+			LOG_WARN("Specified element count '{}' does not match up with actual buffer size '{}'! Patch index: {}", vertexBuffer->m_ElementCount, terrainBuffer.Size(), patchNum);
+			return false;
+		}
+
+		if (patches[patchNum]->m_GeometryIndexBuffer == nullptr)
+		{
+			if (vertexBuffer->m_ElementCount > numVertsPerPatch)
+			{
+				LOG_WARN("Expected {} vertices per geometry patch, but got: {}! Ignoring remaining...  Patch index: {}", numVertsPerPatch, vertexBuffer->m_ElementCount, patchNum);
+			}
+			if (vertexBuffer->m_ElementCount < numVertsPerPatch)
+			{
+				LOG_WARN("Not enough vertices! Expected {} vertices per geometry patch, but got: {}! Skipping VBUF...  Patch index: {}", numVertsPerPatch, vertexBuffer->m_ElementCount, patchNum);
+				return false;
+			}
+		}
+
+		// calc patch offset
+		if (patchColumnIndex >= numPatchesPerRow)
+		{
+			patchColumnIndex = 0;
+			patchOffset.z += patchDistance;
+		}
+		patchOffset.x = (patchColumnIndex * patchDistance) - distToCenter;
+		patchColumnIndex++;
+
+		// If a custom index buffer is specified, use the entire provided vertex buffer.
+		// If not, just just the expected amount. Apparently there're some VBUFs with more
+		// vertices than expected, but no custom index buffer.
+		// In those cases, we just ignore all remaining vertices.
+		size_t numVertices = patches[patchNum]->m_GeometryIndexBuffer != nullptr ? terrainBuffer.Size() : numVertsPerPatch;
+		for (size_t j = 0; j < numVertices; ++j)
+		{
+			glm::vec3 pos = (ToGLM(terrainBuffer[j].m_Position) + patchOffset);
+			vertices.Add(pos.x);
+			vertices.Add(pos.y);
+			vertices.Add(pos.z);
+		}
+
+		vertexBufferOut = std::move(vertices);
+		return true;
+	}
+
+
+	uint32_t Terrain::GetNumPatches() const
+	{
+		return p_Terrain->p_Patches->m_Patches.Size();
+	}
+
+
+	bool Terrain::GetPatchBlendData(uint32_t patchNum, List<uint32_t>& texSlotsOut, List<uint8_t>& blendMapOut) const
+	{
+		
+		List<PTCH*>& patches = p_Terrain->p_Patches->m_Patches;
+
+		if (patchNum > patches.Size())
+		{
+			return false;
+		}
+		
+		auto *curPatch = patches[patchNum];
+		auto *patchInfo = curPatch -> p_PatchInfo;
+		auto *patchSplatChunk = curPatch -> m_TextureBuffer;
+		
+		blendMapOut = patchSplatChunk -> m_BlendMapData;
+	    texSlotsOut = patchInfo -> m_TextureSlotsUsed;
+
+	    return true;
+	}
+
+
+
+
 	void Terrain::GetVertexBuffer(uint32_t& count, Vector3*& vertexBuffer) const
 	{
 		count = (uint32_t)m_Positions.Size();

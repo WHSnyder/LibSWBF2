@@ -27,7 +27,14 @@ namespace LibSWBF2.Wrappers
             if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
             APIWrapper.Terrain_GetTexNames(NativeInstance, out uint numTextures, out IntPtr stringsPtr);
             return MemUtils.IntPtrToStringList(stringsPtr, (int) numTextures); 
-        }       
+        }
+
+
+        public int GetNumPatches()
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");            
+            return APIWrapper.Terrain_GetNumPatches(NativeInstance);            
+        }     
 
 
         public void GetHeightMap(out uint dim, out uint dimScale, out float[] data) 
@@ -54,6 +61,62 @@ namespace LibSWBF2.Wrappers
             Marshal.Copy(bytesNative, byteArray, 0, dataLength);
             data = byteArray; 
         } 
+
+
+        public uint[] GetPatchIndexBuffer(int patchNum)
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            if (patchNum > GetNumPatches()) throw new Exception("Patch num out of bounds!");
+
+            if (APIWrapper.Terrain_GetPatchIndexBuffer(NativeInstance, patchNum, out int numInds, out IntPtr buf))
+            {
+                return MemUtils.IntPtrToArray<uint>(buf, numInds);  
+            }
+
+            return new uint[0];
+        }
+
+
+        public float[] GetPatchVertexBuffer(int patchNum)
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            if (patchNum > GetNumPatches()) throw new Exception("Patch num out of bounds!");
+
+            if (APIWrapper.Terrain_GetPatchVertexBuffer(NativeInstance, patchNum, out int numVerts, out IntPtr buf))
+            {
+                return MemUtils.IntPtrToArray<float>(buf, numVerts);  
+            }
+
+            return new float[0];
+        }
+
+
+        public byte[] GetPatchBlendMap(int patchNum)
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            if (patchNum > GetNumPatches()) throw new Exception("Patch num out of bounds!");
+
+            if (APIWrapper.Terrain_GetPatchBlendData(NativeInstance, patchNum, out int _, out IntPtr __, out int len, out IntPtr buf))
+            {
+                return MemUtils.IntPtrToArray<byte>(buf, len);  
+            }
+
+            return new byte[0];
+        }
+
+
+        public uint[] GetPatchTextureIndices(int patchNum)
+        {
+            if (!IsValid()) throw new Exception("Underlying native class is destroyed!");
+            if (patchNum > GetNumPatches()) throw new Exception("Patch num out of bounds!");
+
+            if (APIWrapper.Terrain_GetPatchBlendData(NativeInstance, patchNum, out int len, out IntPtr buf, out int _, out IntPtr __))
+            {
+                return MemUtils.IntPtrToArray<uint>(buf, len);  
+            }
+
+            return new uint[0];
+        }  
 
 
         public uint[] GetIndexBuffer()

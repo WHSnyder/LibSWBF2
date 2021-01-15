@@ -144,6 +144,11 @@ namespace LibSWBF2
 		LIBSWBF2_API const void Terrain_GetVertexBuffer(const Terrain *ter, float_t*& positions, int32_t& numVerts);
 		LIBSWBF2_API const void Terrain_GetNormalsBuffer(const Terrain *ter, float_t*& normals, int32_t& numNormals);
 		LIBSWBF2_API const void Terrain_GetIndexBuffer(const Terrain *terr, uint32_t*& indicies, int32_t& numInds);
+		LIBSWBF2_API const bool Terrain_GetPatchBlendData(const Terrain *terr, int32_t patchNum, int32_t& numTexSlots, uint32_t*& texSlots, int32_t& blendDataLength, uint8_t *& blendData);
+		LIBSWBF2_API const bool Terrain_GetPatchIndexBuffer(const Terrain *terr, int32_t patchNum, int32_t& numInds, uint32_t*& indsBuffer);
+		LIBSWBF2_API const bool Terrain_GetPatchVertexBuffer(const Terrain *terr, int32_t patchNum, int32_t& numVerts, float_t*& vertBuffer);
+        LIBSWBF2_API const int32_t Terrain_GetNumPatches(const Terrain *terr);
+
 
 		// Wrappers - World
         LIBSWBF2_API const char* World_GetName(const World* world);
