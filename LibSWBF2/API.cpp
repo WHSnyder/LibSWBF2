@@ -891,7 +891,7 @@ namespace LibSWBF2
     uint8_t EntityClass_GetOverriddenProperties(const EntityClass *ec, uint32_t*& hashesBuffer, const char**& valuesBuffer, int32_t& count)
     {
     	CheckPtr(ec, false)
-    	List<const char*> ptrsBuffer;
+    	static List<const char*> ptrsBuffer;
     	static List<String> values;
     	static List<uint32_t> hashes;
 

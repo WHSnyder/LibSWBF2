@@ -26,32 +26,32 @@ namespace LibSWBF2.NET.Test
                 return -1;
             }
         
-            World[] worlds = level.GetWrappers<World>();
+            World[] worlds = level.Get<World>();
 
             foreach (World world in worlds)
             {
-                Console.WriteLine("\n" + world.name);
+                Console.WriteLine("\n" + world.Name);
                 
                 Console.WriteLine("  Instances: ");
                 foreach (Instance instance in world.GetInstances())
                 {
-                    var ec = container.FindWrapper<EntityClass>(instance.entityClassName);
+                    var ec = container.Get<EntityClass>(instance.EntityClassName);
 
                     if (ec == null)
                     {
                         continue;
                     }
 
-                    string baseName = ec.GetBaseName();
+                    string baseName = ec.BaseClassName;
 
                     
-                    string instName = instance.name;
-                    Vector4 rot = instance.rotation;
-                    Vector3 pos = instance.position;
+                    string instName = instance.Name;
+                    Vector4 rot = instance.Rotation;
+                    Vector3 pos = instance.Position;
 
                     Console.WriteLine("\n\tInstance: " + instName);
                     
-                    Console.WriteLine("\t  Class: " + ec.name);
+                    Console.WriteLine("\t  Class: " + ec.Name);
                     Console.WriteLine("\t  Parent: " + baseName);
                     Console.WriteLine("\t  Rotation: " + rot.ToString());
                     Console.WriteLine("\t  Position: " + pos.ToString());
@@ -70,11 +70,11 @@ namespace LibSWBF2.NET.Test
                 Console.WriteLine("  Regions:");
                 foreach (Region region in world.GetRegions())
                 {
-                    Console.WriteLine("\n\tRegion: " + region.name);
+                    Console.WriteLine("\n\tRegion: " + region.Name);
                 
-                    Console.WriteLine("\t  Size: " + region.size.ToString());
-                    Console.WriteLine("\t  Rotation: " + region.rotation.ToString());
-                    Console.WriteLine("\t  Type: " + region.type);
+                    Console.WriteLine("\t  Size: " + region.Size.ToString());
+                    Console.WriteLine("\t  Rotation: " + region.Rotation.ToString());
+                    Console.WriteLine("\t  Type: " + region.Type);
                 } 
             }
 

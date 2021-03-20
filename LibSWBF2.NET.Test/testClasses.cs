@@ -17,21 +17,21 @@ namespace LibSWBF2.NET.Test
         static int Main(string[] args)
         {
             {
-                TestBench.StartLogging(ELogType.Warning);
+                TestBench testBench = new TestBench(); 
 
-                Level level = TestBench.LoadAndTrackLVL(args[0]);
+                Container container = testBench.LoadAndTrackContainer(new List<string>(args), out List<Level> lvls);
+
+                Level level = lvls[0];
                 if (level == null)
                 {
-                    TestBench.StopLogging();
                     return -1;
                 }
             
-                var classes = level.GetEntityClasses();
+                var classes = level.Get<EntityClass>();
 
-                int k = 0;
                 foreach (var ec in classes)
                 {
-                    Console.WriteLine("\n" + ec.name + " of base class: " + ec.GetBaseName());
+                    Console.WriteLine("\n" + ec.Name + " of base class: " + ec.BaseClassName);
 
                     ec.GetOverriddenProperties(out uint[] hashes, out string[] values);
 
@@ -40,10 +40,8 @@ namespace LibSWBF2.NET.Test
                     {
                         Console.WriteLine("\t0x{0:x}: {1}", hashes[i], values[i]);
                     }
-                    
                 } 
 
-                TestBench.StopLogging();
                 return 1;
             }
         }

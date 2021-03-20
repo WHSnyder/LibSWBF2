@@ -34,6 +34,8 @@ add_library(LibSWBF2_Objects OBJECT)
 target_compile_options(LibSWBF2_Objects PUBLIC -Wno-attributes)
 target_include_directories(LibSWBF2_Objects PRIVATE . DirectX)
 target_compile_options(LibSWBF2_Objects PUBLIC -Wno-deprecated-volatile)
+target_compile_definitions(LibSWBF2_Objects PUBLIC MEMORY_MAPPED_READER)
+
 
 
 add_subdirectory(Chunks)
