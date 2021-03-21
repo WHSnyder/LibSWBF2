@@ -31,13 +31,13 @@ namespace LibSWBF2
         public static extern IntPtr Container_Initialize();  
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint Container_AddLevel(IntPtr container, [MarshalAs(UnmanagedType.LPStr)] string path);
+        public static extern ushort Container_AddLevel(IntPtr container, [MarshalAs(UnmanagedType.LPStr)] string path);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint Container_AddLevelFiltered(IntPtr container, [MarshalAs(UnmanagedType.LPStr)] string path, IntPtr[] subLVLs, uint subLVLCount);
+        public static extern ushort Container_AddLevelFiltered(IntPtr container, [MarshalAs(UnmanagedType.LPStr)] string path, IntPtr[] subLVLs, uint subLVLCount);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint Container_AddSoundBank(IntPtr container, [MarshalAs(UnmanagedType.LPStr)] string path);
+        public static extern ushort Container_AddSoundBank(IntPtr container, [MarshalAs(UnmanagedType.LPStr)] string path);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Container_FreeAll(IntPtr container, [MarshalAs(UnmanagedType.U1)] bool force);
@@ -49,8 +49,11 @@ namespace LibSWBF2
         public static extern float Container_GetOverallProgress(IntPtr container);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr Container_GetLevel(IntPtr container, uint handle); 
-        
+        public static extern IntPtr Container_GetLevel(IntPtr container, uint handle);
+
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void Container_GetLoadedLevels(IntPtr container, out IntPtr handles, out ushort handleCount);
+
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Container_GetWrapper(IntPtr container, uint type, [MarshalAs(UnmanagedType.LPStr)] string name);        
 
@@ -208,12 +211,14 @@ namespace LibSWBF2
         public static extern bool Instance_GetPropertiesFromHash(IntPtr inst, uint hashedPropName, out IntPtr values, out uint count);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool Instance_GetOverriddenProperties(IntPtr ec, out IntPtr hashBuffer, out IntPtr valueBuffer, out int count);
+        public static extern void Instance_GetOverriddenProperties(IntPtr ec, out IntPtr hashBuffer, out IntPtr valueBuffer, out int count);
+
+        [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void EntityClass_GetAllProperties(IntPtr ec, out IntPtr hashBuffer, out IntPtr valueBuffer, out int count);
 
 
         // Light //
-        
+
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr Light_GetAllFields(IntPtr lightPtr,   out IntPtr rotPtr,
                                                     out IntPtr posPtr, out uint lightType, 
@@ -301,8 +306,7 @@ namespace LibSWBF2
         public static extern bool EntityClass_GetPropertiesFromHash(IntPtr ec, uint hashedPropName, out IntPtr values, out uint count);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.U1)]
-        public static extern bool EntityClass_GetOverriddenProperties(IntPtr ec, out IntPtr hashBuffer, out IntPtr valueBuffer, out int count);
+        public static extern void EntityClass_GetOverriddenProperties(IntPtr ec, out IntPtr hashBuffer, out IntPtr valueBuffer, out int count);
 
 
         // Material //

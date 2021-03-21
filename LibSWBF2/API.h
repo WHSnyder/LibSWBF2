@@ -66,13 +66,14 @@ namespace LibSWBF2
 
 		// Wrappers - Container
         LIBSWBF2_API const Container* Container_Initialize();  
-        LIBSWBF2_API uint32_t Container_AddLevel(Container* container, const char *path);
-		LIBSWBF2_API uint32_t Container_AddLevelFiltered(Container* container, const char* path, const char** subLVLs, uint32_t subLVLCount);
-		LIBSWBF2_API uint32_t Container_AddSoundBank(Container* container, const char* path);
+        LIBSWBF2_API uint16_t Container_AddLevel(Container* container, const char *path);
+		LIBSWBF2_API uint16_t Container_AddLevelFiltered(Container* container, const char* path, const char** subLVLs, uint32_t subLVLCount);
+		LIBSWBF2_API uint16_t Container_AddSoundBank(Container* container, const char* path);
 		LIBSWBF2_API void Container_FreeAll(Container* container, uint8_t force);
         LIBSWBF2_API float_t Container_GetProgress(Container* container, uint32_t handle);  
         LIBSWBF2_API float_t Container_GetOverallProgress(Container* container);  
         LIBSWBF2_API const Level* Container_GetLevel(Container* container, uint32_t handle);
+		LIBSWBF2_API void Container_GetLoadedLevels(Container* container, uint16_t*& handles, uint16_t handleCount);
         LIBSWBF2_API uint8_t Container_GetStatus(Container* container, uint32_t handle);
 
 		LIBSWBF2_API const void Container_LoadLevels(Container* container);
@@ -115,7 +116,8 @@ namespace LibSWBF2
 		LIBSWBF2_API uint8_t EntityClass_GetPropertyFromHash(const EntityClass *ec, uint32_t hashedPropName, const char*& value);
 		LIBSWBF2_API uint8_t EntityClass_GetPropertiesFromName(const EntityClass *ec, const char* propName, const char**& values, uint32_t& count);
 		LIBSWBF2_API uint8_t EntityClass_GetPropertiesFromHash(const EntityClass *ec, uint32_t hashedPropName, const char**& values, uint32_t& count);
-		LIBSWBF2_API uint8_t EntityClass_GetOverriddenProperties(const EntityClass *ec, uint32_t*& hashesBuffer, const char**& valuesBuffer, int32_t &count);
+		LIBSWBF2_API void EntityClass_GetOverriddenProperties(const EntityClass *ec, uint32_t*& hashesBuffer, const char**& valuesBuffer, int32_t &count);
+		LIBSWBF2_API void EntityClass_GetAllProperties(const EntityClass* ec, uint32_t*& hashesBuffer, const char**& valuesBuffer, int32_t& count);
 
 		// Wrappers - Bone
 		LIBSWBF2_API const void Bone_FetchAllFields(const Bone* bone, const char *&name, const char *& parentName, const Vector3*& loc, const Vector4*& rot);
@@ -173,7 +175,7 @@ namespace LibSWBF2
 		LIBSWBF2_API uint8_t Instance_GetPropertyFromHash(const Instance* instPtr, uint32_t hashedPropName, const char*& value);
 		LIBSWBF2_API uint8_t Instance_GetPropertiesFromName(const Instance* instPtr, const char* propName, const char**& values, uint32_t& count);
 		LIBSWBF2_API uint8_t Instance_GetPropertiesFromHash(const Instance* instPtr, uint32_t hashedPropName, const char**& values, uint32_t& count);
-   		LIBSWBF2_API const uint8_t Instance_GetOverriddenProperties(const Instance *instPtr, uint32_t*& hashesBuffer, const char**& valuesBuffer, int32_t& count);
+   		LIBSWBF2_API void Instance_GetOverriddenProperties(const Instance *instPtr, uint32_t*& hashesBuffer, const char**& valuesBuffer, int32_t& count);
 
         // Wrappers - Material
         LIBSWBF2_API uint8_t Material_FetchAllFields(const Material* matPtr,  Vector3*& specular,
