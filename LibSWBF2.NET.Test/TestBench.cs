@@ -55,6 +55,46 @@ namespace LibSWBF2.NET.Test
         }
 
 
+        public Container LoadAndTrackContainerFiltTest(string basepath, List<string> leaves, out List<Level> levelsOut)
+        {
+            Container container = new Container();
+
+            List<SWBF2Handle> handles = new List<SWBF2Handle>();
+
+            handles.Add(container.AddLevel(basepath, leaves.ToArray()));
+
+            container.LoadLevels();
+
+            while (!container.IsDone())
+            {
+                string status = "\r";
+                for (int i = 0; i < handles.Count; i++)
+                {
+                    float progress = container.GetProgress(handles[i]);
+                    status += String.Format("{0}: {1}%\t", i, (int) (progress * 100.0f));
+                }
+
+                Console.Write(status);
+            }
+            Console.WriteLine("");
+
+            List<Level> lvls = new List<Level>();
+            foreach (var handle in handles)
+            {
+                Level lvl = container.GetLevel(handle);
+
+                if (lvl != null)
+                {
+                    lvls.Add(lvl);
+                }
+            }
+
+            levelsOut = lvls;
+
+            return container;
+        }
+
+
         public Container LoadAndTrackContainer(List<string> paths, out List<Level> levelsOut)
         {
             Container container = new Container();
